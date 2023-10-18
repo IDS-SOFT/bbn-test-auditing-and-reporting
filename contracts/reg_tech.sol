@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 /******************************************************************************************* */
 /* This is a comprehensive smart contract template which handles :
@@ -11,8 +10,9 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 3. Automatic compliance checks
 */
 
-contract RegulatorySandbox is Ownable {
+contract RegulatorySandbox {
     using SafeMath for uint256;
+    address owner;
 
     string public sandboxName;
     address public regulator;
@@ -29,10 +29,17 @@ contract RegulatorySandbox is Ownable {
     constructor(string memory _sandboxName, address _regulator) {
         sandboxName = _sandboxName;
         regulator = _regulator;
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == issuer, "Only owner can call this function");
+        _;
     }
 
     // Approve a RegTech solution for testing within the sandbox
     function approveRegTechSolution(address solutionAddress) external onlyRegulator {
+        require(solutionAddress != address(0), "Invalid address");
         require(!closed, "Sandbox is closed");
         require(!regTechSolutions[solutionAddress], "Solution is already approved");
         regTechSolutions[solutionAddress] = true;
@@ -41,6 +48,7 @@ contract RegulatorySandbox is Ownable {
 
     // Revoke approval for a RegTech solution
     function revokeRegTechSolution(address solutionAddress) external onlyRegulator {
+        require(solutionAddress != address(0), "Invalid address");
         require(!closed, "Sandbox is closed");
         require(regTechSolutions[solutionAddress], "Solution is not approved");
         regTechSolutions[solutionAddress] = false;
@@ -65,16 +73,15 @@ contract RegulatorySandbox is Ownable {
         uint256 complianceViolationCount,
         string memory complianceReport
     ) external onlyRegulator {
+        require(solutionAddress != address(0), "Invalid address");
         require(closed, "Sandbox is not closed");
         // Implement auditing and reporting logic
         // You can store compliance reports and violation counts for each solution
     }
     
     function getBalance(address user_account) external returns (uint){
-    
-       string memory data = "User Balance is : ";
        uint user_bal = user_account.balance;
-       emit CheckBalance(data, user_bal );
+       emit CheckBalance(user_bal );
        return (user_bal);
 
     }
